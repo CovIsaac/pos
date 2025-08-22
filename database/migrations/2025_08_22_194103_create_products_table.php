@@ -11,10 +11,13 @@ return new class extends Migration
         Schema::create('products', function (Blueprint $table) {
             $table->id();
             $table->foreignId('subcategory_id')->constrained('subcategories')->onDelete('cascade');
-            $table->string('name'); // Te faltaba el nombre del producto
-            $table->smallInteger('size')->nullable();
-            // Usamos decimal para precios: 10 dígitos en total, 2 decimales
-            $table->decimal('price', 10, 2);
+            $table->string('name');
+            // Store size/price pairs as JSON [{name: "Small", price: 1.99}, ...]
+            $table->json('sizes');
+            // Optional product image path
+            $table->string('image')->nullable();
+            // Array of extra option IDs associated with the product
+            $table->json('extras')->nullable();
             $table->timestamps();
         });
     }
