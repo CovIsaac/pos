@@ -9,7 +9,12 @@ class Product extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['subcategory_id', 'name', 'size', 'price'];
+    protected $fillable = ['subcategory_id', 'name', 'sizes', 'image', 'extras'];
+
+    protected $casts = [
+        'sizes' => 'array',
+        'extras' => 'array',
+    ];
 
     // Un producto pertenece a una subcategoría
     public function subcategory()
