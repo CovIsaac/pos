@@ -1,4 +1,6 @@
 <?php
+// PASO 5: Crea este nuevo modelo.
+// archivo: app/Models/OrderDetail.php
 
 namespace App\Models;
 
@@ -12,27 +14,17 @@ class OrderDetail extends Model
     protected $fillable = [
         'order_id',
         'product_id',
-        'extra_id',
-        'unit_price',
         'quantity',
-        'subtotal'
+        'price',
     ];
 
-    // Un detalle pertenece a una orden
-    public function order()
-    {
-        return $this->belongsTo(Order::class);
-    }
-
-    // Un detalle corresponde a un producto
     public function product()
     {
         return $this->belongsTo(Product::class);
     }
 
-    // Un detalle puede tener un extra
-    public function extra()
+    public function order()
     {
-        return $this->belongsTo(Extra::class);
+        return $this->belongsTo(Order::class);
     }
 }
