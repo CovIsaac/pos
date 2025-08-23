@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval' data: blob:;">
+  <meta name="viewport" content="initial-scale=1, width=device-width, viewport-fit=cover" />
+  <title>SmartPrint</title>
+  <style>
+    body { font-family: system-ui; padding: 18px; }
+    label { display:block; margin-bottom:10px; }
+    input { padding:8px; width:100%; max-width:520px; margin-top:4px; }
+    button { padding:10px 14px; margin-top:10px; }
+    small { color: #555; }
+  </style>
+</head>
+<body>
+  <h2>SmartPrint</h2>
+  <p>Escucha pedidos del POS y los imprime en automático.</p>
+
+  <label>API URL del POS (Laravel)
+    <input id="api" placeholder="http://192.168.1.100:8000/api" />
+    <small>Ej: si corres <code>php artisan serve --host 0.0.0.0 --port 8000</code> en tu PC.</small>
+  </label>
+
+  <label>IP de la impresora
+    <input id="ip" placeholder="192.168.1.50" />
+  </label>
+
+  <label>Puerto de la impresora
+    <input id="port" value="9100" />
+  </label>
+
+  <button id="save">Guardar</button>
+  <button id="test">Prueba de impresión</button>
+
+  <script src="cordova.js"></script>
+  <script src="js/index.js"></script>
+</body>
+</html>
