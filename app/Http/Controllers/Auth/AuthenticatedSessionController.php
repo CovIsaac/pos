@@ -28,6 +28,12 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        $user = $request->user();
+
+        if ($user->role === 'Caja') {
+            return redirect()->route('pos.index');
+        }
+
         return redirect()->intended(route('dashboard', absolute: false));
     }
 

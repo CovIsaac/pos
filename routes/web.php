@@ -36,7 +36,9 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
     
     // Rutas de Impresión
     Route::post('orders', [OrderController::class, 'store'])->name('orders.store');
-    Route::post('print-ticket', [PrinterController::class, 'printTicket'])->name('print.ticket'); // <-- Añade esta ruta
+    Route::post('print-ticket', [PrinterController::class, 'printTicket'])->name('print.ticket');
+    Route::get('printers', [PrinterController::class, 'index'])->name('printers.index');
+    Route::put('printers', [PrinterController::class, 'update'])->name('printers.update');
 });
 
 require __DIR__.'/auth.php';

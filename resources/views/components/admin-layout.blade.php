@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-<!-- archivo: resources/views/layouts/admin.blade.php -->
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-theme="night">
 <head>
     <meta charset="utf-8">
@@ -43,10 +42,12 @@
                 <ul class="menu p-4 w-80 min-h-full bg-base-100 text-base-content">
                     <li class="text-xl font-bold p-4"><a>POS Admin</a></li>
                     <li><a href="{{ route('admin.dashboard') }}" class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">Dashboard</a></li>
+                    <li><a href="{{ route('pos.index') }}" class="{{ request()->routeIs('pos.index') ? 'active' : '' }}">Ir al POS</a></li>
                     <div class="divider"></div>
                     <li><a href="{{ route('admin.categories.index') }}" class="{{ request()->routeIs('admin.categories.*') ? 'active' : '' }}">Categorías</a></li>
                     <li><a href="{{ route('admin.subcategories.index') }}" class="{{ request()->routeIs('admin.subcategories.*') ? 'active' : '' }}">Subcategorías</a></li>
                     <li><a href="{{ route('admin.products.index') }}" class="{{ request()->routeIs('admin.products.*') ? 'active' : '' }}">Productos</a></li>
+                    <li><a href="{{ route('admin.printers.index') }}" class="{{ request()->routeIs('admin.printers.*') ? 'active' : '' }}">Impresora</a></li>
                     <div class="divider"></div>
 
                     <li>

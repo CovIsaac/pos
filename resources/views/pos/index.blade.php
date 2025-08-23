@@ -26,7 +26,13 @@
         <!-- Header -->
         <header class="bg-base-100 shadow-md p-4 flex justify-between items-center">
             <h1 class="text-2xl font-bold">Punto de Venta</h1>
-            <a href="{{ route('admin.dashboard') }}" class="btn btn-outline btn-primary">Ir al Admin</a>
+            @if(Auth::user()->role === 'Admin')
+                <a href="{{ route('admin.dashboard') }}" class="btn btn-outline btn-primary">Ir al Admin</a>
+            @endif
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="submit" class="btn btn-outline btn-error">Cerrar Sesión</button>
+            </form>
         </header>
 
         <!-- Main Content -->
