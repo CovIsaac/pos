@@ -16,6 +16,8 @@ var app = {
       const btnTest = document.getElementById('test');
       const btnToggle = document.getElementById('toggle');
 
+      this.lastId = parseInt(localStorage.getItem('lastId') || '0', 10);
+
       api.value  = this.apiBase;
       ip.value   = this.printerIP;
       port.value = String(this.printerPort);
@@ -104,6 +106,7 @@ var app = {
         await this.printToTcp(bytes);
         await fetch(`${this.apiBase}/print-jobs/${job.id}/done`, { method: 'POST' });
         this.lastId = Math.max(this.lastId, job.id);
+        localStorage.setItem('lastId', String(this.lastId));
       } catch (e) {
         console.error('print job error', e);
       }
