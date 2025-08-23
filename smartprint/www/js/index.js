@@ -88,6 +88,7 @@ var app = {
     }
     if (navigator.onLine) {
       this.timer = setInterval(this.checkAndPrint.bind(this), 3000);
+      this.checkAndPrint();
     }
     this.running = true;
   },
