@@ -8,6 +8,8 @@ var app = {
 
   initialize: function () {
     document.addEventListener('deviceready', this.onDeviceReady.bind(this), false);
+    window.addEventListener('offline', this.handleOffline.bind(this));
+    window.addEventListener('online', this.handleOnline.bind(this));
     document.addEventListener('DOMContentLoaded', () => {
       const api = document.getElementById('api');
       const ip  = document.getElementById('ip');
@@ -63,6 +65,19 @@ var app = {
     }
   },
 
+  handleOffline() {
+    if (this.timer) {
+      clearInterval(this.timer);
+      this.timer = null;
+    }
+  },
+
+  handleOnline() {
+    if (this.running && !this.timer) {
+      this.timer = setInterval(this.checkAndPrint.bind(this), 3000);
+    }
+  },
+
   startService() {
     if (this.running) return;
     if (cordova.plugins.backgroundMode) {
@@ -71,7 +86,9 @@ var app = {
         cordova.plugins.backgroundMode.disableBatteryOptimizations();
       }
     }
-    this.timer = setInterval(this.checkAndPrint.bind(this), 3000);
+    if (navigator.onLine) {
+      this.timer = setInterval(this.checkAndPrint.bind(this), 3000);
+    }
     this.running = true;
   },
 
