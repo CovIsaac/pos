@@ -12,6 +12,13 @@
   <preference name="Autostart" value="true" />
   <preference name="BackgroundMode" value="enabled" />
 
+  <!-- Plugins -->
+  <plugin name="cordova-plugin-background-mode" />
+  <plugin name="cordova-plugin-autostart" />
+  <plugin name="cordova-plugin-network-information" />
+  <plugin name="cordova-plugin-chrome-apps-sockets-tcp" />
+  <plugin name="cordova-plugin-printer" />
+
   <!-- Permisos Android -->
   <edit-config file="AndroidManifest.xml" mode="merge" target="/manifest">
     <manifest>
