@@ -30,7 +30,7 @@ class PrinterController extends Controller
             $printer->text("COMANDA\n");
             $printer->selectPrintMode();
             $printer->text("Cliente: " . $validated['customer_name'] . "\n");
-            $printer->text(date('d/m/Y H:i:s') . "\n");
+            $printer->text(now()->setTimezone('America/Mexico_City')->format('d/m/Y H:i:s') . "\n");
             $printer->feed();
 
             /* Cuerpo del Ticket (Productos) */
