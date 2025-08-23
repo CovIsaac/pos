@@ -2,43 +2,39 @@
 <widget id="com.smartbar.smartprint"
         version="1.0.0"
         xmlns="http://www.w3.org/ns/widgets"
-        xmlns:cdv="http://cordova.apache.org/ns/1.0">
+        xmlns:cdv="http://cordova.apache.org/ns/1.0"
+        xmlns:android="http://schemas.android.com/apk/res/android">
+
   <name>SmartPrint</name>
   <description>Impresión automática para POS</description>
   <author email="you@example.com">You</author>
 
-  <!-- Preferencias -->
+  <!-- Preferencias Cordova -->
   <preference name="AndroidPersistentFileLocation" value="Compatibility" />
-  <preference name="Autostart" value="true" />
   <preference name="BackgroundMode" value="enabled" />
+  <preference name="AutoHideSplashScreen" value="true" />
 
-  <!-- Plugins -->
-  <plugin name="cordova-plugin-background-mode" />
-  <plugin name="cordova-plugin-autostart" />
-  <plugin name="cordova-plugin-network-information" />
-  <plugin name="cordova-plugin-chrome-apps-sockets-tcp" />
-  <plugin name="cordova-plugin-printer" />
+  <!-- (Opcional pero recomendado) Declarar el hook -->
+  <hook type="after_prepare" src="hooks/after_prepare/010-fix-exported.js" />
 
-  <!-- Permisos Android -->
-  <edit-config file="AndroidManifest.xml" mode="merge" target="/manifest">
-    <manifest>
-      <uses-permission android:name="android.permission.INTERNET" />
-      <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-      <uses-permission android:name="android.permission.WAKE_LOCK" />
-      <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-      <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-      <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-      <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
-      <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
-    </manifest>
-  </edit-config>
-
-  <!-- Plataformas -->
+  <!-- Puedes añadir aquí preferencias de Android si las necesitas -->
   <platform name="android">
-    <!-- (opcional) iconos/splash -->
-  </platform>
+    <preference name="android-minSdkVersion" value="24" />
+    <preference name="android-targetSdkVersion" value="35" />
+    <preference name="android-compileSdkVersion" value="35" />
 
-  <content src="index.html" />
-  <access origin="*" />
-  <allow-intent href="*" />
+    <!-- (Opcional) Permisos vía edit-config si tu app los requiere -->
+    <!--
+    <edit-config file="app/src/main/AndroidManifest.xml" mode="merge" target="/manifest">
+      <manifest>
+        <uses-permission android:name="android.permission.INTERNET" />
+        <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+        <uses-permission android:name="android.permission.WAKE_LOCK" />
+        <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+        <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+        <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+      </manifest>
+    </edit-config>
+    -->
+  </platform>
 </widget>
