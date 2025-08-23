@@ -3,6 +3,8 @@ var app = {
   printerIP: localStorage.getItem('printerIP') || '192.168.1.50',
   printerPort: parseInt(localStorage.getItem('printerPort') || '9100', 10),
   lastId: 0,
+  timer: null,
+  running: false,
 
   initialize: function () {
     document.addEventListener('deviceready', this.onDeviceReady.bind(this), false);
@@ -12,6 +14,7 @@ var app = {
       const port= document.getElementById('port');
       const btnSave = document.getElementById('save');
       const btnTest = document.getElementById('test');
+      const btnToggle = document.getElementById('toggle');
 
       api.value  = this.apiBase;
       ip.value   = this.printerIP;
@@ -35,22 +38,49 @@ var app = {
           alert('Error al imprimir: ' + e.message);
         }
       });
+
+      btnToggle.textContent = this.running ? 'Detener servicio' : 'Iniciar servicio';
+      btnToggle.addEventListener('click', () => {
+        if (this.running) {
+          this.stopService();
+          btnToggle.textContent = 'Iniciar servicio';
+        } else {
+          this.startService();
+          btnToggle.textContent = 'Detener servicio';
+        }
+      });
     });
   },
 
   onDeviceReady: function () {
     if (cordova.plugins.backgroundMode) {
       cordova.plugins.backgroundMode.setDefaults({ title: 'SmartPrint', text: 'Escuchando pedidos…' });
+    }
+    if (window.plugins && window.plugins.autostart) {
+      window.plugins.autostart.enable();
+    }
+  },
+
+  startService() {
+    if (this.running) return;
+    if (cordova.plugins.backgroundMode) {
       cordova.plugins.backgroundMode.enable();
       if (cordova.plugins.backgroundMode.disableBatteryOptimizations) {
         cordova.plugins.backgroundMode.disableBatteryOptimizations();
       }
     }
-    if (window.plugins && window.plugins.autostart) {
-      window.plugins.autostart.enable();
+    this.timer = setInterval(this.checkAndPrint.bind(this), 3000);
+    this.running = true;
+  },
+
+  stopService() {
+    if (!this.running) return;
+    clearInterval(this.timer);
+    this.timer = null;
+    if (cordova.plugins.backgroundMode) {
+      cordova.plugins.backgroundMode.disable();
     }
-    // Polling simple cada 3s. Luego podremos pasar a WebSocket.
-    setInterval(this.checkAndPrint.bind(this), 3000);
+    this.running = false;
   },
 
   // ====== POS API ======
