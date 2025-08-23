@@ -63,6 +63,11 @@ var app = {
     if (window.plugins && window.plugins.autostart) {
       window.plugins.autostart.enable();
     }
+    if (localStorage.getItem('serviceRunning') === '1') {
+      this.startService();
+      const btn = document.getElementById('toggle');
+      if (btn) btn.textContent = 'Detener servicio';
+    }
   },
 
   handleOffline() {
@@ -91,6 +96,7 @@ var app = {
       this.checkAndPrint();
     }
     this.running = true;
+    localStorage.setItem('serviceRunning', '1');
   },
 
   stopService() {
@@ -101,6 +107,7 @@ var app = {
       cordova.plugins.backgroundMode.disable();
     }
     this.running = false;
+    localStorage.setItem('serviceRunning', '0');
   },
 
   // ====== POS API ======
