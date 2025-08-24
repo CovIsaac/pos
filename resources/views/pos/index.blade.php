@@ -419,7 +419,7 @@
             };
 
             try {
-                const response = await fetch("{{ route('admin.orders.store') }}", {
+                const response = await fetch("{{ route('admin.orders.finalize') }}", {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -430,15 +430,15 @@
 
                 const result = await response.json();
 
-                if (response.ok) {
-                    showNotification('Venta finalizada con éxito.', 'success');
+                if (response.ok && result.success) {
+                    showNotification(result.message || 'Venta finalizada con éxito.', 'success');
                     paymentModal.close();
                     newOrder();
                 } else {
-                    showNotification(result.message || 'Hubo un error al guardar la venta.', 'error');
+                    showNotification(result.message || 'Hubo un error al finalizar la venta.', 'error');
                 }
             } catch (error) {
-                showNotification('Error de conexión al guardar la venta.', 'error');
+                showNotification('Error de conexión al finalizar la venta.', 'error');
             }
         }
     </script>

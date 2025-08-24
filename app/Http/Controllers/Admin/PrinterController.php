@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Mike42\Escpos\PrintConnectors\NetworkPrintConnector;
 use Mike42\Escpos\Printer;
 use Exception;
+use App\Models\Order;
 
 class PrinterController extends Controller
 {
@@ -53,6 +54,45 @@ class PrinterController extends Controller
         } catch (Exception $e) {
             // Aquí sería una buena práctica registrar el error
             return response()->json(['success' => false, 'message' => 'No se pudo conectar con la impresora: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Imprime una orden existente basada en su ID.
+     */
+    public function printOrder(int $orderId): void
+    {
+        $order = Order::with('details.product')->findOrFail($orderId);
+
+        // Reutilizamos la lógica de impresión del ticket
+        try {
+            $printerIp = '192.168.100.87';
+            $connector = new NetworkPrintConnector($printerIp, 9100);
+            $printer = new Printer($connector);
+
+            $printer->setJustification(Printer::JUSTIFY_CENTER);
+            $printer->selectPrintMode(Printer::MODE_DOUBLE_WIDTH);
+            $printer->text("COMANDA\n");
+            $printer->selectPrintMode();
+            $printer->text('Cliente: ' . $order->customer_name . "\n");
+            $printer->text(now()->setTimezone('America/Mexico_City')->format('d/m/Y H:i:s') . "\n");
+            $printer->feed();
+
+            $printer->setJustification(Printer::JUSTIFY_LEFT);
+            foreach ($order->details as $detail) {
+                $line = sprintf(
+                    '%-38s %2s',
+                    $detail->quantity . 'x ' . $detail->product->name . ' (' . $detail->product->size_oz . 'oz)',
+                    ''
+                );
+                $printer->text($line . "\n");
+            }
+
+            $printer->feed(2);
+            $printer->cut();
+            $printer->close();
+        } catch (Exception $e) {
+            // En caso de error de impresión simplemente lo ignoramos o lo podríamos registrar
         }
     }
 }

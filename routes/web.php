@@ -20,7 +20,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-    
+
     Route::get('/pos', [POSController::class, 'index'])->name('pos.index');
 });
 
@@ -29,14 +29,16 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('dashboard/export/excel', [DashboardController::class, 'exportExcel'])->name('dashboard.export.excel');
     Route::get('dashboard/export/pdf', [DashboardController::class, 'exportPdf'])->name('dashboard.export.pdf');
-    
+
     Route::resource('products', ProductController::class);
     Route::resource('categories', CategoryController::class);
     Route::resource('subcategories', SubcategoryController::class);
-    
+
     // Rutas de Impresión
     Route::post('orders', [OrderController::class, 'store'])->name('orders.store');
+    Route::post('orders/finalize', [OrderController::class, 'finalizeAndPrint'])->name('orders.finalize');
     Route::post('print-ticket', [PrinterController::class, 'printTicket'])->name('print.ticket');
 });
 
 require __DIR__.'/auth.php';
+
