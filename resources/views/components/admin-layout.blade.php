@@ -47,7 +47,6 @@
                     <li><a href="{{ route('admin.categories.index') }}" class="{{ request()->routeIs('admin.categories.*') ? 'active' : '' }}">Categorías</a></li>
                     <li><a href="{{ route('admin.subcategories.index') }}" class="{{ request()->routeIs('admin.subcategories.*') ? 'active' : '' }}">Subcategorías</a></li>
                     <li><a href="{{ route('admin.products.index') }}" class="{{ request()->routeIs('admin.products.*') ? 'active' : '' }}">Productos</a></li>
-                    <li><a href="{{ route('admin.printers.index') }}" class="{{ request()->routeIs('admin.printers.*') ? 'active' : '' }}">Impresora</a></li>
                     <div class="divider"></div>
 
                     <li>
