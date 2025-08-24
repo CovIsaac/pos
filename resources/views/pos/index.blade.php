@@ -85,10 +85,9 @@
                         <span>Total:</span>
                         <span id="order-total">$0.00</span>
                     </div>
-                    <div class="grid grid-cols-3 gap-2 mt-4">
-                        <button class="btn btn-accent" onclick="saveOrder()"><i class="fas fa-save mr-2"></i>Guardar</button>
-                        <button class="btn btn-secondary" onclick="printComanda()"><i class="fas fa-print mr-2"></i>Comanda</button>
-                        <button class="btn btn-primary" onclick="showPaymentModal()"><i class="fas fa-dollar-sign mr-2"></i>Cobrar</button>
+                    <div class="grid grid-cols-2 gap-2 mt-4">
+                        <button class="btn btn-secondary" onclick="printTest()"><i class="fas fa-print mr-2"></i>ImprimirPrueba</button>
+                        <button class="btn btn-primary" onclick="placeOrder()"><i class="fas fa-check mr-2"></i>Ordenar</button>
                     </div>
                     <button class="btn btn-ghost w-full mt-2" onclick="newOrder()"><i class="fas fa-plus mr-2"></i>Nueva Orden</button>
                 </div>
@@ -138,7 +137,7 @@
             </div>
 
             <div class="modal-action">
-                 <button class="btn btn-success" onclick="finalizeSale()">Finalizar Venta</button>
+                 <button class="btn btn-success" onclick="placeOrder()">Ordenar</button>
                  <form method="dialog"><button class="btn">Cancelar</button></form>
             </div>
         </div>
@@ -315,57 +314,6 @@
             showNotification(`Orden de "${name}" cargada.`, 'success');
         }
 
-        async function printComanda() {
-            const customerName = customerNameInput.value.trim() || 'Cliente';
-            let itemsToPrint = [];
-            
-            if (originalLoadedOrderState) {
-                const originalQuantities = originalLoadedOrderState.reduce((acc, item) => {
-                    acc[item.id] = item.quantity;
-                    return acc;
-                }, {});
-
-                currentOrder.forEach(item => {
-                    const originalQty = originalQuantities[item.id] || 0;
-                    if (item.quantity > originalQty) {
-                        itemsToPrint.push({ ...item, quantity: item.quantity - originalQty });
-                    }
-                });
-            } else {
-                itemsToPrint = currentOrder;
-            }
-
-            if (itemsToPrint.length === 0) {
-                showNotification('No hay productos nuevos para imprimir.', 'error');
-                return;
-            }
-
-            // ¡Aquí está la magia!
-            try {
-                const response = await fetch("{{ route('admin.print.ticket') }}", {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                    },
-                    body: JSON.stringify({
-                        customer_name: customerName,
-                        items_to_print: itemsToPrint
-                    })
-                });
-
-                const result = await response.json();
-
-                if (response.ok) {
-                    showNotification(result.message, 'success');
-                } else {
-                    showNotification(result.message, 'error');
-                }
-            } catch (error) {
-                showNotification('Error de conexión al intentar imprimir.', 'error');
-            }
-        }
-
         // --- Payment Modal Logic ---
         function showPaymentModal() {
             if (currentOrder.length === 0) {
@@ -409,12 +357,16 @@
             calculateChange();
         }
 
-        async function finalizeSale() {
+        async function placeOrder() {
+            if (currentOrder.length === 0) {
+                showNotification('No hay productos en la orden para enviar.', 'error');
+                return;
+            }
             const total = updateTotal();
             const payload = {
                 customer_name: customerNameInput.value.trim() || 'Cliente',
                 total_price: total,
-                payment_method: selectedPaymentMethod,
+                payment_method: 'cash',
                 items: currentOrder,
             };
 
@@ -431,14 +383,32 @@
                 const result = await response.json();
 
                 if (response.ok && result.success) {
-                    showNotification(result.message || 'Venta finalizada con éxito.', 'success');
-                    paymentModal.close();
+                    showNotification(result.message || 'Orden guardada e impresa.', 'success');
                     newOrder();
                 } else {
-                    showNotification(result.message || 'Hubo un error al finalizar la venta.', 'error');
+                    showNotification(result.message || 'Hubo un error al procesar la orden.', 'error');
                 }
             } catch (error) {
-                showNotification('Error de conexión al finalizar la venta.', 'error');
+                showNotification('Error de conexión al procesar la orden.', 'error');
+            }
+        }
+
+        async function printTest() {
+            try {
+                const response = await fetch("{{ route('admin.print.test') }}", {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    }
+                });
+                const result = await response.json();
+                if (response.ok && result.success) {
+                    showNotification(result.message, 'success');
+                } else {
+                    showNotification(result.message || 'Error al imprimir la prueba.', 'error');
+                }
+            } catch (error) {
+                showNotification('Error de conexión al imprimir la prueba.', 'error');
             }
         }
     </script>

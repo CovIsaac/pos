@@ -12,6 +12,23 @@ use App\Models\Order;
 
 class PrinterController extends Controller
 {
+    public function printTest()
+    {
+        try {
+            $printerIp = '192.168.100.87';
+            $connector = new NetworkPrintConnector($printerIp, 9100);
+            $printer = new Printer($connector);
+            $printer->text("=== PRUEBA DE IMPRESIÓN ===\n");
+            $printer->feed(2);
+            $printer->cut();
+            $printer->close();
+
+            return response()->json(['success' => true, 'message' => 'Impresión de prueba enviada.']);
+        } catch (Exception $e) {
+            return response()->json(['success' => false, 'message' => 'No se pudo conectar con la impresora: ' . $e->getMessage()], 500);
+        }
+    }
+
     public function printTicket(Request $request)
     {
         $validated = $request->validate([
