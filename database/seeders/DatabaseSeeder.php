@@ -19,7 +19,6 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             CategorySeeder::class,
             SubcategorySeeder::class,
-            PrinterSettingSeeder::class,
             // Aquí puedes agregar otros seeders que crees en el futuro
         ]);
     }

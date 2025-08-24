@@ -8,30 +8,9 @@ use Illuminate\Http\Request;
 use Mike42\Escpos\PrintConnectors\NetworkPrintConnector;
 use Mike42\Escpos\Printer;
 use Exception;
-use App\Models\PrinterSetting;
 
 class PrinterController extends Controller
 {
-    public function index()
-    {
-        $printerIp = PrinterSetting::where('key', 'printer_ip')->first();
-        return view('admin.printers.index', compact('printerIp'));
-    }
-
-    public function update(Request $request)
-    {
-        $validated = $request->validate([
-            'printer_ip' => 'required|ip',
-        ]);
-
-        PrinterSetting::updateOrCreate(
-            ['key' => 'printer_ip'],
-            ['value' => $validated['printer_ip']]
-        );
-
-        return redirect()->route('admin.printers.index')->with('success', 'IP de la impresora actualizada con éxito.');
-    }
-
     public function printTicket(Request $request)
     {
         $validated = $request->validate([
@@ -41,8 +20,7 @@ class PrinterController extends Controller
 
         try {
             // Reemplaza esta IP con la de tu impresora de red
-            $printerIpSetting = PrinterSetting::where('key', 'printer_ip')->first();
-            $printerIp = $printerIpSetting ? $printerIpSetting->value : '192.168.100.87'; 
+            $printerIp = '192.168.100.87'; // IP de la impresora
             $connector = new NetworkPrintConnector($printerIp, 9100);
             $printer = new Printer($connector);
 
@@ -73,7 +51,7 @@ class PrinterController extends Controller
             return response()->json(['success' => true, 'message' => 'Comanda enviada a la impresora.']);
 
         } catch (Exception $e) {
-            // Loguear el error sería una buena práctica aquí
+            // Aquí sería una buena práctica registrar el error
             return response()->json(['success' => false, 'message' => 'No se pudo conectar con la impresora: ' . $e->getMessage()], 500);
         }
     }
