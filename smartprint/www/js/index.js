@@ -3,15 +3,22 @@ var app = {
   printerIP: localStorage.getItem('printerIP') || '192.168.1.50',
   printerPort: parseInt(localStorage.getItem('printerPort') || '9100', 10),
   lastId: 0,
+  timer: null,
+  running: false,
 
   initialize: function () {
     document.addEventListener('deviceready', this.onDeviceReady.bind(this), false);
+    window.addEventListener('offline', this.handleOffline.bind(this));
+    window.addEventListener('online', this.handleOnline.bind(this));
     document.addEventListener('DOMContentLoaded', () => {
       const api = document.getElementById('api');
       const ip  = document.getElementById('ip');
       const port= document.getElementById('port');
       const btnSave = document.getElementById('save');
       const btnTest = document.getElementById('test');
+      const btnToggle = document.getElementById('toggle');
+
+      this.lastId = parseInt(localStorage.getItem('lastId') || '0', 10);
 
       api.value  = this.apiBase;
       ip.value   = this.printerIP;
@@ -35,22 +42,72 @@ var app = {
           alert('Error al imprimir: ' + e.message);
         }
       });
+
+      btnToggle.textContent = this.running ? 'Detener servicio' : 'Iniciar servicio';
+      btnToggle.addEventListener('click', () => {
+        if (this.running) {
+          this.stopService();
+          btnToggle.textContent = 'Iniciar servicio';
+        } else {
+          this.startService();
+          btnToggle.textContent = 'Detener servicio';
+        }
+      });
     });
   },
 
   onDeviceReady: function () {
     if (cordova.plugins.backgroundMode) {
       cordova.plugins.backgroundMode.setDefaults({ title: 'SmartPrint', text: 'Escuchando pedidos…' });
+    }
+    if (window.plugins && window.plugins.autostart) {
+      window.plugins.autostart.enable();
+    }
+    if (localStorage.getItem('serviceRunning') === '1') {
+      this.startService();
+      const btn = document.getElementById('toggle');
+      if (btn) btn.textContent = 'Detener servicio';
+    }
+  },
+
+  handleOffline() {
+    if (this.timer) {
+      clearInterval(this.timer);
+      this.timer = null;
+    }
+  },
+
+  handleOnline() {
+    if (this.running && !this.timer) {
+      this.timer = setInterval(this.checkAndPrint.bind(this), 3000);
+    }
+  },
+
+  startService() {
+    if (this.running) return;
+    if (cordova.plugins.backgroundMode) {
       cordova.plugins.backgroundMode.enable();
       if (cordova.plugins.backgroundMode.disableBatteryOptimizations) {
         cordova.plugins.backgroundMode.disableBatteryOptimizations();
       }
     }
-    if (window.plugins && window.plugins.autostart) {
-      window.plugins.autostart.enable();
+    if (navigator.onLine) {
+      this.timer = setInterval(this.checkAndPrint.bind(this), 3000);
+      this.checkAndPrint();
     }
-    // Polling simple cada 3s. Luego podremos pasar a WebSocket.
-    setInterval(this.checkAndPrint.bind(this), 3000);
+    this.running = true;
+    localStorage.setItem('serviceRunning', '1');
+  },
+
+  stopService() {
+    if (!this.running) return;
+    clearInterval(this.timer);
+    this.timer = null;
+    if (cordova.plugins.backgroundMode) {
+      cordova.plugins.backgroundMode.disable();
+    }
+    this.running = false;
+    localStorage.setItem('serviceRunning', '0');
   },
 
   // ====== POS API ======
@@ -74,6 +131,7 @@ var app = {
         await this.printToTcp(bytes);
         await fetch(`${this.apiBase}/print-jobs/${job.id}/done`, { method: 'POST' });
         this.lastId = Math.max(this.lastId, job.id);
+        localStorage.setItem('lastId', String(this.lastId));
       } catch (e) {
         console.error('print job error', e);
       }
