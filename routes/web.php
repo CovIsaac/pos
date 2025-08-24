@@ -38,6 +38,7 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
     Route::post('orders', [OrderController::class, 'store'])->name('orders.store');
     Route::post('orders/finalize', [OrderController::class, 'finalizeAndPrint'])->name('orders.finalize');
     Route::post('print-ticket', [PrinterController::class, 'printTicket'])->name('print.ticket');
+    Route::post('print-test', [PrinterController::class, 'printTest'])->name('print.test');
 });
 
 require __DIR__.'/auth.php';
