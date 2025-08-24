@@ -2,10 +2,8 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use App\Models\Category; // Asegúrate de importar el modelo User
-use Illuminate\Support\Facades\Hash; // Importa el Facade para hashear la contraseña
+use App\Models\Category;
 
 class CategorySeeder extends Seeder
 {
@@ -14,11 +12,16 @@ class CategorySeeder extends Seeder
      */
     public function run(): void
     {
-        // Usuario Administrador
-        Category::create([ 'Name'    => 'Bloody Mary']);
-        Category::create([ 'Name'    => 'Clásicos con Vodka']);
-        Category::create([ 'Name'    => 'Aperol']);
-        Category::create([ 'Name'    => 'Sin Alcohol']);
-        Category::create([ 'Name'    => 'Café']);
+        $categories = [
+            'Bloody Mary',
+            'Vodka',
+            'Aperol',
+            'Sin Alcohol',
+            'Café',
+        ];
+
+        foreach ($categories as $name) {
+            Category::create(['name' => $name]);
+        }
     }
 }
