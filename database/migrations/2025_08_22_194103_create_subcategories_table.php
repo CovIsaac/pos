@@ -10,10 +10,11 @@ return new class extends Migration
     {
         Schema::create('subcategories', function (Blueprint $table) {
             $table->id();
-            // Llave foránea siguiendo la convención de Laravel
             $table->foreignId('category_id')->constrained('categories')->onDelete('cascade');
             $table->string('name', 30);
             $table->string('url_img', 255)->nullable();
+            $table->json('sizes')->nullable(); // [{"name": "Chico", "price": 50}, {"name": "Grande", "price": 70}]
+            $table->json('extras')->nullable(); // [1, 2, 3] (IDs de los extras)
             $table->timestamps();
         });
     }

@@ -1,0 +1,80 @@
+<?php
+// archivo: app/Http/Controllers/Admin/PrinterController.php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Mike42\Escpos\PrintConnectors\NetworkPrintConnector;
+use Mike42\Escpos\Printer;
+use Exception;
+use App\Models\PrinterSetting;
+
+class PrinterController extends Controller
+{
+    public function index()
+    {
+        $printerIp = PrinterSetting::where('key', 'printer_ip')->first();
+        return view('admin.printers.index', compact('printerIp'));
+    }
+
+    public function update(Request $request)
+    {
+        $validated = $request->validate([
+            'printer_ip' => 'required|ip',
+        ]);
+
+        PrinterSetting::updateOrCreate(
+            ['key' => 'printer_ip'],
+            ['value' => $validated['printer_ip']]
+        );
+
+        return redirect()->route('admin.printers.index')->with('success', 'IP de la impresora actualizada con éxito.');
+    }
+
+    public function printTicket(Request $request)
+    {
+        $validated = $request->validate([
+            'customer_name' => 'required|string',
+            'items_to_print' => 'required|array',
+        ]);
+
+        try {
+            // Reemplaza esta IP con la de tu impresora de red
+            $printerIpSetting = PrinterSetting::where('key', 'printer_ip')->first();
+            $printerIp = $printerIpSetting ? $printerIpSetting->value : '192.168.100.87'; 
+            $connector = new NetworkPrintConnector($printerIp, 9100);
+            $printer = new Printer($connector);
+
+            /* Encabezado del Ticket */
+            $printer->setJustification(Printer::JUSTIFY_CENTER);
+            $printer->selectPrintMode(Printer::MODE_DOUBLE_WIDTH);
+            $printer->text("COMANDA\n");
+            $printer->selectPrintMode();
+            $printer->text("Cliente: " . $validated['customer_name'] . "\n");
+            $printer->text(now()->setTimezone('America/Mexico_City')->format('d/m/Y H:i:s') . "\n");
+            $printer->feed();
+
+            /* Cuerpo del Ticket (Productos) */
+            $printer->setJustification(Printer::JUSTIFY_LEFT);
+            foreach ($validated['items_to_print'] as $item) {
+                // Formateamos la línea para que la cantidad quede a la derecha
+                $line = sprintf('%-38s %2s', $item['quantity'] . 'x ' . $item['name'] . ' (' . $item['size_oz'] . 'oz)', '');
+                $printer->text($line . "\n");
+            }
+
+            /* Pie de página y corte */
+            $printer->feed(2);
+            $printer->cut();
+            
+            /* Cerrar conexión */
+            $printer->close();
+
+            return response()->json(['success' => true, 'message' => 'Comanda enviada a la impresora.']);
+
+        } catch (Exception $e) {
+            // Loguear el error sería una buena práctica aquí
+            return response()->json(['success' => false, 'message' => 'No se pudo conectar con la impresora: ' . $e->getMessage()], 500);
+        }
+    }
+}

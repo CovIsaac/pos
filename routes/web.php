@@ -1,37 +1,44 @@
 <?php
+// archivo: routes/web.php
 
 use App\Http\Controllers\ProfileController;
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ProductController;
-use App\Http\Controllers\Admin\DashboardController; // ¡Importante añadir este!
-
-// ... (tus rutas existentes de welcome y dashboard)
+use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\SubcategoryController;
+use App\Http\Controllers\Admin\OrderController;
+use App\Http\Controllers\Admin\PrinterController; // Importar PrinterController
+use App\Http\Controllers\POSController;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
-
-
-// --- Grupo de Rutas del Panel de Administración ---
-Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
-    // Dashboard del Admin
-    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
-
-    // Rutas para Productos (CRUD completo)
-    Route::resource('products', ProductController::class);
-    // Esto crea automáticamente las rutas para:
-    // index (listar), create, store, show, edit, update, destroy
-});
-
-
 Route::middleware('auth')->group(function () {
+    Route::get('/dashboard', function () { return redirect()->route('admin.dashboard'); })->name('dashboard');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    
+    Route::get('/pos', [POSController::class, 'index'])->name('pos.index');
+});
+
+// Rutas del Administrador
+Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('dashboard/export/excel', [DashboardController::class, 'exportExcel'])->name('dashboard.export.excel');
+    Route::get('dashboard/export/pdf', [DashboardController::class, 'exportPdf'])->name('dashboard.export.pdf');
+    
+    Route::resource('products', ProductController::class);
+    Route::resource('categories', CategoryController::class);
+    Route::resource('subcategories', SubcategoryController::class);
+    
+    // Rutas de Impresión
+    Route::post('orders', [OrderController::class, 'store'])->name('orders.store');
+    Route::post('print-ticket', [PrinterController::class, 'printTicket'])->name('print.ticket');
+    Route::get('printers', [PrinterController::class, 'index'])->name('printers.index');
+    Route::put('printers', [PrinterController::class, 'update'])->name('printers.update');
 });
 
 require __DIR__.'/auth.php';

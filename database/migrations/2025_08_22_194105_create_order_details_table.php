@@ -1,4 +1,6 @@
 <?php
+// PASO 1: Crea este nuevo archivo de migración.
+// archivo: database/migrations/2025_08_22_194105_create_order_details_table.php
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -11,12 +13,9 @@ return new class extends Migration
         Schema::create('order_details', function (Blueprint $table) {
             $table->id();
             $table->foreignId('order_id')->constrained('orders')->onDelete('cascade');
-            $table->foreignId('product_id')->constrained('products');
-            // Un item puede no tener extra, por eso es nullable
-            $table->foreignId('extra_id')->nullable()->constrained('extras');
-            $table->decimal('unit_price', 10, 2);
-            $table->smallInteger('quantity');
-            $table->decimal('subtotal', 10, 2);
+            $table->foreignId('product_id')->constrained('products')->onDelete('cascade');
+            $table->integer('quantity');
+            $table->decimal('price', 10, 2);
             $table->timestamps();
         });
     }

@@ -1,62 +1,98 @@
+<!-- archivo: resources/views/admin/dashboard.blade.php -->
 <x-admin-layout>
-    @section('title', 'Dashboard')
+    <x-slot name="header">
+        <h2 class="font-semibold text-xl text-gray-200 leading-tight">
+            {{ __('Dashboard de Ventas') }}
+        </h2>
+    </x-slot>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-
-        <div class="card bg-base-100 shadow-xl">
-            <div class="card-body">
-                <div class="flex items-center">
-                    <div class="p-4 bg-primary rounded-lg text-white">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 1.1.9 2 2 2h12a2 2 0 002-2V7M16 3H8a2 2 0 00-2 2v2h12V5a2 2 0 00-2-2z"></path></svg>
+    <div class="py-12">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <!-- Filter Form -->
+            <div class="bg-base-100 p-4 rounded-lg shadow-md mb-6">
+                <form id="filter-form" action="{{ route('admin.dashboard') }}" method="GET">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <!-- Date From -->
+                        <div>
+                            <label for="date_from" class="label">Desde:</label>
+                            <input type="date" name="date_from" id="date_from" class="input input-bordered w-full" value="{{ request('date_from') }}">
+                        </div>
+                        <!-- Date To -->
+                        <div>
+                            <label for="date_to" class="label">Hasta:</label>
+                            <input type="date" name="date_to" id="date_to" class="input input-bordered w-full" value="{{ request('date_to') }}">
+                        </div>
+                        <!-- Category -->
+                        <div>
+                            <label for="category_id" class="label">Categoría:</label>
+                            <select name="category_id" id="category_id" class="select select-bordered w-full">
+                                <option value="">Todas</option>
+                                @foreach($categories as $category)
+                                    <option value="{{ $category->id }}" {{ request('category_id') == $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <!-- Subcategory -->
+                        <div>
+                            <label for="subcategory_id" class="label">Subcategoría:</label>
+                            <select name="subcategory_id" id="subcategory_id" class="select select-bordered w-full">
+                                <option value="">Todas</option>
+                                 @foreach($subcategories as $subcategory)
+                                    <option value="{{ $subcategory->id }}" {{ request('subcategory_id') == $subcategory->id ? 'selected' : '' }}>{{ $subcategory->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
                     </div>
-                    <div class="ml-4">
-                        <p class="text-sm text-gray-500">Total de Productos</p>
-                        <p class="text-2xl font-bold">54</p> </div>
-                </div>
+                    <div class="mt-4 flex flex-wrap gap-2 justify-end">
+                        <button type="submit" class="btn btn-primary">Filtrar</button>
+                        <a href="{{ route('admin.dashboard') }}" class="btn btn-ghost">Limpiar</a>
+                        <button type="submit" form="export-pdf-form" class="btn btn-secondary"><i class="fas fa-file-pdf mr-2"></i>PDF</button>
+                        <button type="submit" form="export-excel-form" class="btn btn-success"><i class="fas fa-file-excel mr-2"></i>Excel</button>
+                    </div>
+                </form>
+                <!-- Hidden forms for export -->
+                <form id="export-pdf-form" action="{{ route('admin.dashboard.export.pdf') }}" method="GET" class="hidden">@csrf</form>
+                <form id="export-excel-form" action="{{ route('admin.dashboard.export.excel') }}" method="GET" class="hidden">@csrf</form>
+            </div>
+
+            <!-- Sales Cards Grid -->
+            <div id="orders-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                 @forelse($orders as $order)
+                    <div class="card bg-base-100 shadow-xl order-card" data-date="{{ $order->created_at->toDateString() }}">
+                        <div class="card-body">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h2 class="card-title">Venta #{{ $order->id }}</h2>
+                                    <p class="text-sm text-gray-400">{{ $order->customer_name }}</p>
+                                </div>
+                                <div class="badge {{ $order->payment_method == 'cash' ? 'badge-success' : 'badge-info' }}">{{ ucfirst($order->payment_method) }}</div>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">{{ $order->created_at->format('d/m/Y h:i A') }}</p>
+                            <div class="divider my-2"></div>
+                            <ul class="space-y-1 text-sm">
+                                @foreach($order->details as $detail)
+                                    @if ($detail->product)
+                                    <li class="flex justify-between">
+                                        <span>{{ $detail->quantity }}x {{ $detail->product->name }} ({{ $detail->product->size_oz }} oz)</span>
+                                        <span>${{ number_format($detail->price * $detail->quantity, 2) }}</span>
+                                    </li>
+                                    @else
+                                    <li class="text-error">Producto no encontrado</li>
+                                    @endif
+                                @endforeach
+                            </ul>
+                            <div class="divider my-2"></div>
+                            <div class="card-actions justify-end">
+                                <div class="text-lg font-bold">Total: ${{ number_format($order->total_price, 2) }}</div>
+                            </div>
+                        </div>
+                    </div>
+                @empty
+                    <div class="col-span-full text-center py-12 bg-base-100 rounded-lg">
+                        <p class="text-gray-500">No se encontraron ventas con los filtros aplicados.</p>
+                    </div>
+                @endforelse
             </div>
         </div>
-
-        <div class="card bg-base-100 shadow-xl">
-            <div class="card-body">
-                 <div class="flex items-center">
-                    <div class="p-4 bg-success rounded-lg text-white">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v.01"></path></svg>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm text-gray-500">Ventas del Día</p>
-                        <p class="text-2xl font-bold">$1,250.00</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="card bg-base-100 shadow-xl">
-            <div class="card-body">
-                 <div class="flex items-center">
-                    <div class="p-4 bg-info rounded-lg text-white">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a3.001 3.001 0 015.644 0M12 12a3 3 0 100-6 3 3 0 000 6z"></path></svg>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm text-gray-500">Nuevos Usuarios</p>
-                        <p class="text-2xl font-bold">8</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="card bg-base-100 shadow-xl">
-            <div class="card-body">
-                 <div class="flex items-center">
-                    <div class="p-4 bg-warning rounded-lg text-white">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm text-gray-500">Pedidos Pendientes</p>
-                        <p class="text-2xl font-bold">3</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
     </div>
 </x-admin-layout>
