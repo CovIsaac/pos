@@ -17,7 +17,15 @@
         @media print {
             body * { visibility: hidden; }
             #print-section, #print-section * { visibility: visible; }
-            #print-section { position: absolute; left: 0; top: 0; width: 100%; display: block; }
+            #print-section {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                display: block;
+                padding-top: 20px;
+                padding-bottom: 20px;
+            }
         }
     </style>
 </head>
@@ -405,11 +413,18 @@
             }
 
             const total = updateTotal();
+            const customerName = customerNameInput.value.trim() || 'Cliente/Mesa';
+            const now = new Date();
+            const formattedDate = now.toLocaleDateString();
+            const formattedTime = now.toLocaleTimeString();
+
             const itemsHtml = currentOrder.map(item =>
                 `<div class="flex justify-between text-sm"><span>${item.quantity} x ${item.name} (${item.size_oz} oz)</span><span>$${(item.price * item.quantity).toFixed(2)}</span></div>`
             ).join('');
 
-            const content = `<div class="p-2 text-sm">${itemsHtml}<div class="mt-2 border-t pt-2 flex justify-between font-bold"><span>Total</span><span>$${total.toFixed(2)}</span></div></div>`;
+            const headerHtml = `<div class="mb-2 text-center"><div><strong>Cliente/Mesa:</strong> ${customerName}</div><div class="text-xs">${formattedDate} ${formattedTime}</div></div>`;
+
+            const content = `<div class="p-2 text-sm pt-6 pb-6">${headerHtml}${itemsHtml}<div class="mt-2 border-t pt-2 flex justify-between font-bold"><span>Total</span><span>$${total.toFixed(2)}</span></div></div>`;
 
             printPreviewContainer.innerHTML = `<div class="card bg-base-200 shadow p-4">${content}</div>`;
             printSection.innerHTML = content;
