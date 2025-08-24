@@ -70,6 +70,7 @@ class PrinterController extends Controller
             $connector = new NetworkPrintConnector($printerIp, 9100);
             $printer = new Printer($connector);
 
+            /* Encabezado */
             $printer->setJustification(Printer::JUSTIFY_CENTER);
             $printer->selectPrintMode(Printer::MODE_DOUBLE_WIDTH);
             $printer->text("COMANDA\n");
@@ -78,16 +79,27 @@ class PrinterController extends Controller
             $printer->text(now()->setTimezone('America/Mexico_City')->format('d/m/Y H:i:s') . "\n");
             $printer->feed();
 
+            /* Detalles de la orden */
+            $total = 0;
             $printer->setJustification(Printer::JUSTIFY_LEFT);
             foreach ($order->details as $detail) {
+                $subtotal = $detail->quantity * $detail->price;
+                $total += $subtotal;
+
                 $line = sprintf(
-                    '%-38s %2s',
+                    '%-32s %10.2f',
                     $detail->quantity . 'x ' . $detail->product->name . ' (' . $detail->product->size_oz . 'oz)',
-                    ''
+                    $subtotal
                 );
                 $printer->text($line . "\n");
             }
 
+            /* Total */
+            $printer->text(str_repeat('-', 42) . "\n");
+            $printer->setJustification(Printer::JUSTIFY_RIGHT);
+            $printer->text(sprintf('%-12s %10.2f', 'TOTAL:', $total) . "\n");
+
+            /* Corte */
             $printer->feed(2);
             $printer->cut();
             $printer->close();
