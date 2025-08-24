@@ -22,8 +22,9 @@ class SubcategorySeeder extends Seeder
         ])->get()->keyBy('name');
 
         // Bloody Mary flavours with common sizes
-        foreach (['Clásico', 'Raspberry', 'Lime', 'Smokey'] as $flavour) {
-            Subcategory::create([
+        // foreach (['Clásico', 'Raspberry', 'Lime', 'Smokey'] as $flavour) {
+        foreach (['Clásico', 'Smokey', 'Clásico 2x1', 'Smokey 2x1'] as $flavour) {
+        Subcategory::create([
                 'category_id' => $categories['Bloody Mary']->id,
                 'name'        => $flavour,
                 'sizes'       => [
@@ -77,13 +78,13 @@ class SubcategorySeeder extends Seeder
         ]);
 
         // Café
-        Subcategory::create([
-            'category_id' => $categories['Café']->id,
-            'name'        => 'Café',
-            'sizes'       => [
-                ['size_oz' => 16, 'price' => 35],
-            ],
-            'url_img'   => 'https://solovino.cerounocero.app/wp-content/uploads/2025/08/descargar-1-1-300x300.jpeg',
-        ]);
+        // Subcategory::create([
+        //     'category_id' => $categories['Café']->id,
+        //     'name'        => 'Café',
+        //     'sizes'       => [
+        //         ['size_oz' => 16, 'price' => 35],
+        //     ],
+        //     'url_img'   => 'https://solovino.cerounocero.app/wp-content/uploads/2025/08/descargar-1-1-300x300.jpeg',
+        // ]);
     }
 }
