@@ -17,7 +17,7 @@
         @media print {
             body * { visibility: hidden; }
             #print-section, #print-section * { visibility: visible; }
-            #print-section { position: absolute; left: 0; top: 0; width: 100%; }
+            #print-section { position: absolute; left: 0; top: 0; width: 100%; display: block; }
         }
     </style>
 </head>
@@ -91,6 +91,7 @@
                     </div>
                     <button class="btn btn-ghost w-full mt-2" onclick="newOrder()"><i class="fas fa-plus mr-2"></i>Nueva Orden</button>
                 </div>
+                <div id="print-preview" class="mt-4"></div>
                  <!-- Saved Orders Section -->
                 <div class="border-t border-base-300 pt-4 mt-4">
                     <h3 class="font-bold mb-2">Órdenes Guardadas</h3>
@@ -142,7 +143,7 @@
             </div>
         </div>
     </dialog>
-
+    <div id="print-section" class="hidden"></div>
     <script>
         let currentOrder = [];
         let savedOrders = {};
@@ -165,6 +166,8 @@
         const cashDetails = document.getElementById('cash-details');
         const amountPaidInput = document.getElementById('amount-paid');
         const changeDueElement = document.getElementById('change-due');
+        const printSection = document.getElementById('print-section');
+        const printPreviewContainer = document.getElementById('print-preview');
 
         document.addEventListener('DOMContentLoaded', function() {
             const categoryButtons = document.querySelectorAll('.category-btn');
@@ -281,6 +284,8 @@
             originalLoadedOrderState = null;
             orderTitle.textContent = 'Orden Actual';
             renderOrder();
+            printPreviewContainer.innerHTML = '';
+            printSection.innerHTML = '';
         }
 
         function renderSavedOrders() {
@@ -393,23 +398,23 @@
             }
         }
 
-        async function printTest() {
-            try {
-                const response = await fetch("{{ route('admin.print.test') }}", {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                    }
-                });
-                const result = await response.json();
-                if (response.ok && result.success) {
-                    showNotification(result.message, 'success');
-                } else {
-                    showNotification(result.message || 'Error al imprimir la prueba.', 'error');
-                }
-            } catch (error) {
-                showNotification('Error de conexión al imprimir la prueba.', 'error');
+        function printTest() {
+            if (currentOrder.length === 0) {
+                showNotification('No hay productos en la orden para imprimir.', 'error');
+                return;
             }
+
+            const total = updateTotal();
+            const itemsHtml = currentOrder.map(item =>
+                `<div class="flex justify-between text-sm"><span>${item.quantity} x ${item.name} (${item.size_oz} oz)</span><span>$${(item.price * item.quantity).toFixed(2)}</span></div>`
+            ).join('');
+
+            const content = `<div class="p-2 text-sm">${itemsHtml}<div class="mt-2 border-t pt-2 flex justify-between font-bold"><span>Total</span><span>$${total.toFixed(2)}</span></div></div>`;
+
+            printPreviewContainer.innerHTML = `<div class="card bg-base-200 shadow p-4">${content}</div>`;
+            printSection.innerHTML = content;
+
+            window.print();
         }
     </script>
 </body>
