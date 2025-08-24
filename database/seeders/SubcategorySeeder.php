@@ -49,8 +49,8 @@ class SubcategorySeeder extends Seeder
             'category_id' => $categories['Vodka']->id,
             'name'        => 'Vodka Ricky',
             'sizes'       => [
-                ['size_oz' => 16, 'price' => 98],
-                ['size_oz' => 32, 'price' => 138],
+                ['size_oz' => 16, 'price' => 100],
+                ['size_oz' => 32, 'price' => 140],
             ],
             'url_img'   => 'https://solovino.cerounocero.app/wp-content/uploads/2025/08/Imagen-de-WhatsApp-2025-08-14-a-las-10.42.45_08407a32-300x300.jpg',
         ]);
@@ -70,8 +70,8 @@ class SubcategorySeeder extends Seeder
             'category_id' => $categories['Sin Alcohol']->id,
             'name'        => 'Rusa',
             'sizes'       => [
-                ['size_oz' => 16, 'price' => 58],
-                ['size_oz' => 32, 'price' => 88],
+                ['size_oz' => 16, 'price' => 60],
+                ['size_oz' => 32, 'price' => 90],
             ],
             'url_img'   => 'https://solovino.cerounocero.app/wp-content/uploads/2025/08/Imagen-de-WhatsApp-2025-08-14-a-las-10.43.27_c42cf1de-300x300.jpg',
         ]);
