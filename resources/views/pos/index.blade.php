@@ -85,9 +85,10 @@
                         <span>Total:</span>
                         <span id="order-total">$0.00</span>
                     </div>
-                    <div class="grid grid-cols-3 gap-2 mt-4">
+                    <div class="grid grid-cols-4 gap-2 mt-4">
                         <button class="btn btn-accent" onclick="saveOrder()"><i class="fas fa-save mr-2"></i>Guardar</button>
                         <button class="btn btn-secondary" onclick="printComanda()"><i class="fas fa-print mr-2"></i>Comanda</button>
+                        <button class="btn btn-info" onclick="printPreview()"><i class="fas fa-print mr-2"></i>Imprimir/Prueba</button>
                         <button class="btn btn-primary" onclick="showPaymentModal()"><i class="fas fa-dollar-sign mr-2"></i>Cobrar</button>
                     </div>
                     <button class="btn btn-ghost w-full mt-2" onclick="newOrder()"><i class="fas fa-plus mr-2"></i>Nueva Orden</button>
@@ -99,6 +100,7 @@
                         <p class="text-gray-500 text-sm">No hay órdenes guardadas.</p>
                     </div>
                 </div>
+                <div id="print-preview-container" class="mt-4"></div>
             </div>
         </div>
     </div>
@@ -144,6 +146,8 @@
         </div>
     </dialog>
 
+    <div id="print-section" class="hidden"></div>
+
     <script>
         let currentOrder = [];
         let savedOrders = {};
@@ -156,6 +160,8 @@
         const savedOrdersContainer = document.getElementById('saved-orders-container');
         const orderTitle = document.getElementById('order-title');
         const notificationContainer = document.getElementById('notification-container');
+        const printPreviewContainer = document.getElementById('print-preview-container');
+        const printSection = document.getElementById('print-section');
         
         const sizeModal = document.getElementById('size_modal');
         const modalTitle = document.getElementById('modal-title');
@@ -364,6 +370,29 @@
             } catch (error) {
                 showNotification('Error de conexión al intentar imprimir.', 'error');
             }
+        }
+
+        function printPreview() {
+            if (currentOrder.length === 0) {
+                showNotification('No hay productos en la orden para imprimir.', 'error');
+                return;
+            }
+
+            const customerName = customerNameInput.value.trim() || 'Cliente';
+            const total = updateTotal();
+            const itemsHtml = currentOrder.map(item => `<li>${item.quantity} x ${item.name}</li>`).join('');
+            const previewHtml = `
+                <div class="card bg-base-200 shadow-md p-4">
+                    <h3 class="font-bold mb-2">Vista previa de impresión</h3>
+                    <p class="text-sm mb-2"><strong>Cliente:</strong> ${customerName}</p>
+                    <ul class="text-sm space-y-1">${itemsHtml}</ul>
+                    <p class="mt-2 font-bold">Total: $${total.toFixed(2)}</p>
+                </div>
+            `;
+
+            printPreviewContainer.innerHTML = previewHtml;
+            printSection.innerHTML = previewHtml;
+            window.print();
         }
 
         // --- Payment Modal Logic ---
