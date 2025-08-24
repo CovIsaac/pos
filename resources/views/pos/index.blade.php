@@ -17,7 +17,15 @@
         @media print {
             body * { visibility: hidden; }
             #print-section, #print-section * { visibility: visible; }
-            #print-section { position: absolute; left: 0; top: 0; width: 100%; }
+            #print-section {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                display: block;
+                padding-top: 20px;
+                padding-bottom: 20px;
+            }
         }
     </style>
 </head>
@@ -85,14 +93,13 @@
                         <span>Total:</span>
                         <span id="order-total">$0.00</span>
                     </div>
-                    <div class="grid grid-cols-4 gap-2 mt-4">
-                        <button class="btn btn-accent" onclick="saveOrder()"><i class="fas fa-save mr-2"></i>Guardar</button>
-                        <button class="btn btn-secondary" onclick="printComanda()"><i class="fas fa-print mr-2"></i>Comanda</button>
-                        <button class="btn btn-info" onclick="printPreview()"><i class="fas fa-print mr-2"></i>Imprimir/Prueba</button>
-                        <button class="btn btn-primary" onclick="showPaymentModal()"><i class="fas fa-dollar-sign mr-2"></i>Cobrar</button>
+                    <div class="grid grid-cols-2 gap-2 mt-4">
+                        <button class="btn btn-secondary" onclick="printTest()"><i class="fas fa-print mr-2"></i>ImprimirPrueba</button>
+                        <button class="btn btn-primary" onclick="placeOrder()"><i class="fas fa-check mr-2"></i>Ordenar</button>
                     </div>
                     <button class="btn btn-ghost w-full mt-2" onclick="newOrder()"><i class="fas fa-plus mr-2"></i>Nueva Orden</button>
                 </div>
+                <div id="print-preview" class="mt-4"></div>
                  <!-- Saved Orders Section -->
                 <div class="border-t border-base-300 pt-4 mt-4">
                     <h3 class="font-bold mb-2">Órdenes Guardadas</h3>
@@ -100,7 +107,6 @@
                         <p class="text-gray-500 text-sm">No hay órdenes guardadas.</p>
                     </div>
                 </div>
-                <div id="print-preview-container" class="mt-4"></div>
             </div>
         </div>
     </div>
@@ -140,14 +146,12 @@
             </div>
 
             <div class="modal-action">
-                 <button class="btn btn-success" onclick="finalizeSale()">Finalizar Venta</button>
+                 <button class="btn btn-success" onclick="placeOrder()">Ordenar</button>
                  <form method="dialog"><button class="btn">Cancelar</button></form>
             </div>
         </div>
     </dialog>
-
     <div id="print-section" class="hidden"></div>
-
     <script>
         let currentOrder = [];
         let savedOrders = {};
@@ -160,8 +164,6 @@
         const savedOrdersContainer = document.getElementById('saved-orders-container');
         const orderTitle = document.getElementById('order-title');
         const notificationContainer = document.getElementById('notification-container');
-        const printPreviewContainer = document.getElementById('print-preview-container');
-        const printSection = document.getElementById('print-section');
         
         const sizeModal = document.getElementById('size_modal');
         const modalTitle = document.getElementById('modal-title');
@@ -172,6 +174,8 @@
         const cashDetails = document.getElementById('cash-details');
         const amountPaidInput = document.getElementById('amount-paid');
         const changeDueElement = document.getElementById('change-due');
+        const printSection = document.getElementById('print-section');
+        const printPreviewContainer = document.getElementById('print-preview');
 
         document.addEventListener('DOMContentLoaded', function() {
             const categoryButtons = document.querySelectorAll('.category-btn');
@@ -288,6 +292,8 @@
             originalLoadedOrderState = null;
             orderTitle.textContent = 'Orden Actual';
             renderOrder();
+            printPreviewContainer.innerHTML = '';
+            printSection.innerHTML = '';
         }
 
         function renderSavedOrders() {
@@ -319,80 +325,6 @@
             renderOrder();
             renderSavedOrders();
             showNotification(`Orden de "${name}" cargada.`, 'success');
-        }
-
-        async function printComanda() {
-            const customerName = customerNameInput.value.trim() || 'Cliente';
-            let itemsToPrint = [];
-            
-            if (originalLoadedOrderState) {
-                const originalQuantities = originalLoadedOrderState.reduce((acc, item) => {
-                    acc[item.id] = item.quantity;
-                    return acc;
-                }, {});
-
-                currentOrder.forEach(item => {
-                    const originalQty = originalQuantities[item.id] || 0;
-                    if (item.quantity > originalQty) {
-                        itemsToPrint.push({ ...item, quantity: item.quantity - originalQty });
-                    }
-                });
-            } else {
-                itemsToPrint = currentOrder;
-            }
-
-            if (itemsToPrint.length === 0) {
-                showNotification('No hay productos nuevos para imprimir.', 'error');
-                return;
-            }
-
-            // ¡Aquí está la magia!
-            try {
-                const response = await fetch("{{ route('admin.print.ticket') }}", {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                    },
-                    body: JSON.stringify({
-                        customer_name: customerName,
-                        items_to_print: itemsToPrint
-                    })
-                });
-
-                const result = await response.json();
-
-                if (response.ok) {
-                    showNotification(result.message, 'success');
-                } else {
-                    showNotification(result.message, 'error');
-                }
-            } catch (error) {
-                showNotification('Error de conexión al intentar imprimir.', 'error');
-            }
-        }
-
-        function printPreview() {
-            if (currentOrder.length === 0) {
-                showNotification('No hay productos en la orden para imprimir.', 'error');
-                return;
-            }
-
-            const customerName = customerNameInput.value.trim() || 'Cliente';
-            const total = updateTotal();
-            const itemsHtml = currentOrder.map(item => `<li>${item.quantity} x ${item.name}</li>`).join('');
-            const previewHtml = `
-                <div class="card bg-base-200 shadow-md p-4">
-                    <h3 class="font-bold mb-2">Vista previa de impresión</h3>
-                    <p class="text-sm mb-2"><strong>Cliente:</strong> ${customerName}</p>
-                    <ul class="text-sm space-y-1">${itemsHtml}</ul>
-                    <p class="mt-2 font-bold">Total: $${total.toFixed(2)}</p>
-                </div>
-            `;
-
-            printPreviewContainer.innerHTML = previewHtml;
-            printSection.innerHTML = previewHtml;
-            window.print();
         }
 
         // --- Payment Modal Logic ---
@@ -438,17 +370,21 @@
             calculateChange();
         }
 
-        async function finalizeSale() {
+        async function placeOrder() {
+            if (currentOrder.length === 0) {
+                showNotification('No hay productos en la orden para enviar.', 'error');
+                return;
+            }
             const total = updateTotal();
             const payload = {
                 customer_name: customerNameInput.value.trim() || 'Cliente',
                 total_price: total,
-                payment_method: selectedPaymentMethod,
+                payment_method: 'cash',
                 items: currentOrder,
             };
 
             try {
-                const response = await fetch("{{ route('admin.orders.store') }}", {
+                const response = await fetch("{{ route('admin.orders.finalize') }}", {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -459,16 +395,41 @@
 
                 const result = await response.json();
 
-                if (response.ok) {
-                    showNotification('Venta finalizada con éxito.', 'success');
-                    paymentModal.close();
+                if (response.ok && result.success) {
+                    showNotification(result.message || 'Orden guardada e impresa.', 'success');
                     newOrder();
                 } else {
-                    showNotification(result.message || 'Hubo un error al guardar la venta.', 'error');
+                    showNotification(result.message || 'Hubo un error al procesar la orden.', 'error');
                 }
             } catch (error) {
-                showNotification('Error de conexión al guardar la venta.', 'error');
+                showNotification('Error de conexión al procesar la orden.', 'error');
             }
+        }
+
+        function printTest() {
+            if (currentOrder.length === 0) {
+                showNotification('No hay productos en la orden para imprimir.', 'error');
+                return;
+            }
+
+            const total = updateTotal();
+            const customerName = customerNameInput.value.trim() || 'Cliente/Mesa';
+            const now = new Date();
+            const formattedDate = now.toLocaleDateString();
+            const formattedTime = now.toLocaleTimeString();
+
+            const itemsHtml = currentOrder.map(item =>
+                `<div class="flex justify-between text-sm"><span>${item.quantity} x ${item.name} (${item.size_oz} oz)</span><span>$${(item.price * item.quantity).toFixed(2)}</span></div>`
+            ).join('');
+
+            const headerHtml = `<div class="mb-2 text-center"><div><strong>Cliente/Mesa:</strong> ${customerName}</div><div class="text-xs">${formattedDate} ${formattedTime}</div></div>`;
+
+            const content = `<div class="p-2 text-sm pt-6 pb-6">${headerHtml}${itemsHtml}<div class="mt-2 border-t pt-2 flex justify-between font-bold"><span>Total</span><span>$${total.toFixed(2)}</span></div></div>`;
+
+            printPreviewContainer.innerHTML = `<div class="card bg-base-200 shadow p-4">${content}</div>`;
+            printSection.innerHTML = content;
+
+            window.print();
         }
     </script>
 </body>
